@@ -12,6 +12,7 @@ class Config(object):
         self.owner_id = config.get('Permissions', 'OwnerID', fallback=None)
         self.command_prefix = config.get('Chat', 'CommandPrefix', fallback='!')
 
+
         self.days_active = config.getint('MusicBot', 'DaysActive', fallback=0)
         self.white_list_check = config.getboolean('MusicBot', 'WhiteListCheck', fallback=False)
         self.skips_required = config.getint('MusicBot', 'SkipsRequired', fallback=7)
@@ -24,6 +25,8 @@ class Config(object):
         self.blacklist_file = config.get('Files', 'BlacklistFile', fallback='config/blacklist.txt')
         self.whitelist_file = config.get('Files', 'WhitelistFile', fallback='config/whitelist.txt')
         self.backup_playlist_file = config.get('Files', 'BlackupPlaylistFile', fallback='config/backuplist.txt')
+        self.taylor_file = config.get('Files', 'TalyorInsultsFile', fallback='config/taylor.txt')
+        self.snippet_file = config.get('Files', 'SnippetFile', fallback='config/snippets.txt')
 
         # Validation logic for bot settings.
         if not self.username or not self.password:

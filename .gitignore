@@ -1,5 +1,6 @@
 .idea/
 audio_cache/
 config/*
+snippets/*
 
 *.pyc

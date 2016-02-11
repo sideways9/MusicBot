@@ -59,6 +59,7 @@ class MusicPlayer(EventEmitter):
         self._play_lock = Lock()
         self._current_player = None
         self._current_entry = None
+        self._snippet_player = None
         self.state = MusicPlayerState.STOPPED
         self.volume = volume
 
@@ -76,6 +77,7 @@ class MusicPlayer(EventEmitter):
         self.emit('stop', player=self)
 
     def resume(self):
+        print("Resume")
         if self.is_paused and self._current_player:
             self._current_player.resume()
             self.state = MusicPlayerState.PLAYING
@@ -122,6 +124,32 @@ class MusicPlayer(EventEmitter):
 
     def play(self, _continue=False):
         self.loop.create_task(self._play(_continue=_continue))
+
+    def play_snippet(self, snippet):
+        self.loop.creat_task(self._play_snippet(snippet))
+
+    def restart(self):
+        if self.is_playing:
+            self._current_player.resume()
+        print("Restarted")
+
+    async def _play_snippet(self, filename):
+        """
+            Does not stop the current playing song, plays a snippet over the song.
+        """
+        self._kill_snippet_player()
+        
+        if self.is_playing:
+            self._current_player.pause()
+
+        self._snippet_player = self.voice_client.create_ffmpeg_player(
+            filename,
+            after=self.restart
+        )
+        
+        self._snippet_player.start()
+
+        # self.emit('snippet_play', player=self, entry=entry)
 
     async def _play(self, _continue=False):
         """
@@ -212,6 +240,13 @@ class MusicPlayer(EventEmitter):
             self._current_player = None
             return True
 
+        return False
+
+    def _kill_snippet_player(self):
+        if self._snippet_player:
+            self._snippet_player.stop()
+            self._snippet_player = None
+            return True
         return False
 
 

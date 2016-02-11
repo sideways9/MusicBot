@@ -4,6 +4,7 @@ import traceback
 import asyncio
 import discord
 import sys
+import os
 
 from discord import utils
 from discord.enums import ChannelType
@@ -13,11 +14,12 @@ from discord.voice_client import VoiceClient
 from musicbot.config import Config
 from musicbot.player import MusicPlayer
 from musicbot.playlist import Playlist
-from musicbot.utils import load_file, extract_user_id, write_file
+from musicbot.utils import load_file, extract_user_id, write_file, snippet_map
 
 from .downloader import extract_info
 from .exceptions import CommandError
 from .constants import DISCORD_MSG_CHAR_LIMIT
+from .constants import SNIPPETS_PATH
 from .opus_loader import load_opus_lib
 
 from random import choice
@@ -68,7 +70,12 @@ class MusicBot(discord.Client):
         self.whitelist = set(map(int, load_file(self.config.whitelist_file)))
         self.backuplist = load_file(self.config.backup_playlist_file)
 
+        self.taylorinsults = load_file(self.config.taylor_file)
+
         self.last_np_msg = None
+
+
+        self.snippets = snippet_map(load_file(self.config.snippet_file))
 
     async def get_voice_client(self, channel):
         if isinstance(channel, Object):
@@ -673,6 +680,32 @@ class MusicBot(discord.Client):
         """
         pass
 
+    async def handle_taylor_status(self, message, author):
+        """ 
+        Usage {command_prefix}taylor_status
+        Lets us know taylor's status
+        """
+
+        await self.send_message(message.channel, 'Taylor is %s' % choice(self.taylorinsults))
+
+    async def handle_shots(self, player, message, author):
+        """ 
+        Usage {command_prefix}shots
+        SHOTS SHOTS SHOTS SHOTS!
+        """
+        await self.send_message(message.channel, 'Playing shots snippet')
+
+        print(self.snippets)
+
+        # p self.get_player(message.channel, create=True)
+
+        # player.pause()
+        # print("Paused")
+
+        await player._play_snippet(os.path.join(SNIPPETS_PATH, self.snippets['shots']))
+
+        # player.resume()
+        # print("Resumed")
 
 
     async def on_message(self, message):
@@ -686,7 +719,7 @@ class MusicBot(discord.Client):
             return
 
         message_content = message.content.strip()
-        if not message_content.startswith(self.config.command_prefix):
+        if not message_content.startswith(self.config.command_prefix): 
             return
 
         command, *args = message_content.split()
@@ -695,7 +728,6 @@ class MusicBot(discord.Client):
         handler = getattr(self, 'handle_%s' % command, None)
         if not handler:
             return
-
 
         if int(message.author.id) in self.blacklist and message.author.id != self.config.owner_id:
             print("[Blacklisted] {0.id}/{0.name} ({1})".format(message.author, message_content))

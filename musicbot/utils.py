@@ -19,6 +19,10 @@ def load_file(filename):
         print("Error loading", filename, e)
         return []
 
+def snippet_map(snippets):
+    ss = [tuple(s.split()) for s in snippets]
+    sss = dict(ss)
+    return sss
 
 def write_file(filename, contents):
     with open(filename, 'w') as f:
